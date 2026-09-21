@@ -77,6 +77,10 @@ async def health_check() -> dict[str, str]:
 
 # ── Static frontend (production single-deploy) ────────────────────────────────
 
+_static_dir = pathlib.Path(__file__).parent.parent / "static"
 _frontend_dist = pathlib.Path(__file__).parent.parent.parent / "frontend" / "dist"
-if _frontend_dist.exists():
+
+if _static_dir.exists():
+    app.mount("/", StaticFiles(directory=str(_static_dir), html=True), name="frontend")
+elif _frontend_dist.exists():
     app.mount("/", StaticFiles(directory=str(_frontend_dist), html=True), name="frontend")

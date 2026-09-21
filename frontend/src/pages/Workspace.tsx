@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 type DocTab = 'simplification' | 'risks';
 
-export default function Workspace(): JSX.Element {
+import React, { useMemo, useCallback } from "react";`nexport default function Workspace(): JSX.Element {
   const navigate = useNavigate();
   const sessionId = useWorkspaceStore((s) => s.sessionId);
   const fileName = useWorkspaceStore((s) => s.fileName);
@@ -198,3 +198,4 @@ function WorkspaceHeader({ fileName, onNewUpload }: WorkspaceHeaderProps): JSX.E
     </header>
   );
 }
+

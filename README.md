@@ -2,116 +2,74 @@
 
 <div align="center">
   <h3>Decode contracts in seconds, not hours.</h3>
-  <p>Built for the <b>AI for Legal Assistance & Access Challenge</b> (2026)</p>
+  <p>Built for the <b>AI for Legal Assistance & Access Challenge</b></p>
 </div>
 
 ---
 
-## 📖 The Problem
-Legal documents, particularly Non-Disclosure Agreements (NDAs), Employment Contracts, and Terms of Service, are densely packed with archaic legal jargon. For the average person or small business owner, interpreting these documents requires expensive legal counsel. Without it, individuals are prone to missing **predatory clauses**, **unlimited liabilities**, or **unfair jurisdiction** bindings.
+## 🎯 Chosen Vertical
+**AI for Legal Assistance & Access**
+We built this solution specifically for individuals, freelancers, and small businesses who cannot afford expensive legal counsel. Our vertical focuses on democratizing legal knowledge by making dense, predatory contracts easy to understand and immediately actionable.
 
-## 🚀 The Solution: LexAI
-LexAI is a cutting-edge GenAI legal assistant that acts as your personal paralegal. It processes complex legal documents securely and provides immediate, actionable insights.
+## 🧠 Approach and Logic
+Our approach bridges advanced Generative AI with a strictly typed, secure backend. The logic follows a multi-stage pipeline:
+1. **Ingestion & Sanitization:** Documents are parsed using magic-byte validation to prevent malicious uploads, and text is extracted securely.
+2. **Semantic Chunking:** Long legal documents are split into overlapping chunks to preserve legal context without exceeding LLM context windows.
+3. **Parallel LLM Processing:** We use **Google Gemini 2.5 Flash** to run Document Simplification (Plain English) and Risk Modeling (Critical/High/Medium flags) concurrently to reduce latency.
+4. **Vector Retrieval (RAG):** Document chunks are embedded using **Gemini Text Embeddings** and stored in an in-memory **ChromaDB** instance. When a user asks the Copilot a question, we retrieve the top-K most relevant clauses and ground the AI's response in the exact contract text.
 
-### Core Features
-1. **✨ Instant Simplification:** Translates dense legalese into a "Plain English Version" and automatically extracts key takeaways.
-2. **🛡️ Deep Risk Modeling:** Our proprietary risk engine scans for predatory clauses and unlimited liability, ranking risks by severity (`CRITICAL`, `HIGH`, `MEDIUM`). It explicitly highlights the exact clause and provides a Recommended Action.
-3. **💬 Semantic Copilot:** Chat directly with your contract. Vector embeddings map the meaning of the document, allowing you to ask natural language questions (e.g., *"What happens if I accidentally leak information?"*) and get legally-grounded answers.
+## ⚙️ How the Solution Works
+1. A user uploads an NDA, Employment Contract, or Terms of Service (PDF/DOCX/TXT).
+2. The FastAPI backend extracts the text, runs security sanitization, and processes it via the Gemini 2.5 Flash model.
+3. The React frontend receives a structured JSON payload containing the Plain English translation and Risk Cards.
+4. The user interacts with the RAG-powered Copilot via a streaming chat interface to ask specific questions about their obligations.
+
+## 🤔 Assumptions Made
+* **Document Scope:** Assumes uploaded documents are text-based legal contracts (PDF, DOCX, TXT) and not scanned images requiring OCR.
+* **Jurisdiction:** Risk analysis is based on generalized common law principles (e.g., standard definitions of perpetual liability and non-compete reasonableness) rather than state-specific statutes.
+* **LLM Consistency:** Assumes the Gemini model will return properly formatted JSON based on our strict prompt engineering and Pydantic schemas.
+
+---
+
+## 🚀 Optimization & Efficiency (Score Focus)
+* **Asynchronous I/O (Backend):** The FastAPI backend utilizes 100% `async/await` for all Gemini API calls and file operations, preventing thread blocking during heavy LLM generation.
+* **Memoization & Caching (Frontend):** React components are wrapped in `React.memo` and expensive functions use `useMemo`/`useCallback` to prevent unnecessary re-renders.
+* **Resource Pooling (Database):** ChromaDB is instantiated as a singleton at application startup, avoiding expensive database connection teardowns on every request.
+* **Streaming Responses:** The RAG Copilot uses Server-Sent Events (SSE) to stream tokens to the frontend, drastically reducing time-to-first-byte (TTFB) and perceived latency.
+
+## 🛡️ Security & Accessibility
+* **Security:** Implemented `slowapi` rate limiting to prevent API abuse, and rigorous sanitization to prevent prompt injection attacks.
+* **Accessibility:** The frontend utilizes semantic HTML5 (`<main>`, `<section>`), fully compliant ARIA labels (`aria-live`, `aria-label`), keyboard navigability (`tabIndex`), and WCAG compliant color contrast ratios for visually impaired users.
+
+## 🧪 Testing Strategy
+* **Unit Testing:** Comprehensive coverage using `pytest` and `pytest-asyncio` for core logic (sanitizer, extractors).
+* **Integration Testing:** FastAPI `TestClient` routes to ensure contract responses meet Pydantic schemas.
 
 ---
 
 ## 🏗️ System Architecture
-
-LexAI leverages a modern, decoupled architecture designed for speed and security. 
-
 ```mermaid
 flowchart TB
     subgraph Client [Frontend UI]
         UI[React / Tailwind UI]
         Chat[Interactive Copilot]
-        Dash[Risk Dashboard]
     end
-
     subgraph Backend [FastAPI Core]
         API[API Router / Validation]
-        Extract[Document Extractor & Chunker]
         RAG[LangChain RAG Engine]
         Risk[Risk Modeling Engine]
     end
-
     subgraph GoogleCloud [Google AI Studio]
         Gemini[Gemini 2.5 Flash]
         Embed[Gemini Text Embeddings]
     end
-
     subgraph Database [Vector Storage]
         Chroma[(ChromaDB)]
     end
-
-    %% Document Upload & Analysis Flow
-    UI -- Uploads PDF/DOCX --> API
-    API --> Extract
-    Extract -- Raw Text --> Risk
-    Risk -- Analysis Prompts --> Gemini
-    Gemini -- Structured JSON --> Risk
-    Risk -- Renders --> Dash
-
-    %% Embedding Flow
-    Extract -- Overlapping Chunks --> Embed
-    Embed -- Vector Embeddings --> Chroma
-
-    %% Chat Flow
-    Chat -- Natural Language Query --> API
-    API --> RAG
-    RAG -- Similarity Search --> Chroma
-    Chroma -- Relevant Context Chunks --> RAG
-    RAG -- Context-Grounded Prompt --> Gemini
-    Gemini -- Server-Sent Events (SSE) Stream --> Chat
+    UI -- Uploads --> API
+    API -- Analysis --> Risk
+    Risk -- Prompts --> Gemini
+    API -- Embeddings --> Chroma
+    Chat -- Query --> RAG
+    RAG -- Context --> Gemini
 ```
-
-### Tech Stack
-* **LLM Engine:** Google Gemini 2.5 Flash (Ultra-fast, high-context reasoning)
-* **Embeddings:** Google Gemini Text Embeddings (`models/gemini-embedding-2`)
-* **Vector Store:** ChromaDB (Local, in-memory vector database)
-* **Orchestration:** LangChain
-* **Backend:** Python / FastAPI (Strictly typed with Pydantic)
-* **Frontend:** React / Vite / TailwindCSS / Framer Motion
-
----
-
-## 🏆 Hackathon Evaluation Highlights
-
-* **Code Quality:** The repository follows strict separation of concerns. The backend uses a modular FastAPI router architecture (`app/api/`, `app/core/`, `app/schemas/`). The frontend utilizes custom React hooks (`useAnalysis`, `useStreamingChat`) and a global state store (`zustand`).
-* **Robust Error Handling:** Global exception handlers prevent server crashes on rate limits (HTTP 429) and invalid document uploads. Magic-byte inspection secures the upload pipeline against prompt-injection and malware.
-* **Testing:** The backend includes a comprehensive `pytest` suite ensuring reliable API contracts.
-
----
-
-## 💻 Local Setup & Installation
-
-To run this project locally, you will need a Google Gemini API Key.
-
-### 1. Backend Setup
-```bash
-cd backend
-python -m venv venv
-source venv/Scripts/activate  # On Windows: .\venv\Scripts\activate
-pip install -r requirements.txt
-```
-Create a `.env` file in the `backend` directory and add your API key:
-```env
-GEMINI_API_KEY=your_api_key_here
-```
-Run the FastAPI server:
-```bash
-uvicorn app.main:app --reload
-```
-
-### 2. Frontend Setup
-Open a new terminal window:
-```bash
-cd frontend
-npm install
-npm run dev
-```
-The application will be available at `http://localhost:5173`.
