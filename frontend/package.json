@@ -1,9 +1,9 @@
-{
+﻿{
   "name": "lexai-frontend",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite",`n    "test": "vitest run",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
@@ -29,3 +29,4 @@
     "vite": "^5.4.8"
   }
 }
+

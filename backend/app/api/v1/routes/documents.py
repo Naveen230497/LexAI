@@ -1,4 +1,4 @@
-"""Document upload and retrieval route handlers."""
+﻿"""Document upload and retrieval route handlers."""
 
 import uuid
 
@@ -12,7 +12,7 @@ from app.schemas.document import DocumentInfo, DocumentUploadResponse
 
 router = APIRouter()
 
-# Module-level session store mapping session_id → document metadata and content.
+# Module-level session store mapping session_id â†’ document metadata and content.
 # In production this would be replaced by Redis or a database, but for the scope
 # of this application an in-process dict is sufficient and avoids external deps.
 SESSION_STORE: dict[str, dict] = {}
@@ -54,7 +54,7 @@ async def upload_document(request: Request, file: UploadFile) -> DocumentUploadR
         )
 
     # Security: Inspect magic bytes rather than trusting the file extension so
-    # a renamed executable (e.g., malware.exe → document.pdf) is rejected.
+    # a renamed executable (e.g., malware.exe â†’ document.pdf) is rejected.
     if not validate_file_type(file_bytes[:8], filename):
         raise HTTPException(
             status_code=400,
@@ -112,3 +112,4 @@ async def get_document_info(session_id: str) -> DocumentInfo:
         size_bytes=session["size_bytes"],
         status=session["status"],
     )
+
