@@ -1,5 +1,4 @@
-﻿from functools import lru_cache
-"""Input sanitization utilities for prompt injection prevention."""
+﻿"""Input sanitization utilities for prompt injection prevention."""
 
 from __future__ import annotations
 
@@ -29,7 +28,6 @@ _MAGIC_BYTES: dict[str, bytes] = {
 _MAX_QUERY_LENGTH: int = 2000
 
 
-@lru_cache(maxsize=500)
 def sanitize_query(query: str) -> str:
     """Sanitize a user query to prevent prompt injection attacks.
 
@@ -105,4 +103,5 @@ def validate_file_size(size_bytes: int, max_mb: int) -> bool:
         ``True`` if the file is within the limit, ``False`` if it exceeds it.
     """
     return size_bytes <= max_mb * 1024 * 1024
+
 
